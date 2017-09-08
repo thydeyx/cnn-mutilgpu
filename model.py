@@ -9,6 +9,7 @@
 
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn.datasets import load_dataset
+from tensorflow.core.protobuf import config_pb2
 
 def cnn_model_fn(features, labels, mode):
     input_layer = tf.reshape(features['x'], [-1,28,28,1])
@@ -64,8 +65,11 @@ def main(_):
     train_labels = mnist.train.labels
     test_data = mnist.test.images
     test_labels = mnist.test.labels
+    config = tf.estimator.RunConfig()
+    config.session_config = config_pb2.ConfigProto(allow_soft_placement=True, log_device_placement=True)
+    config.session_config.gpu_options.allow_growth = True
     mnist_classifier = tf.estimator.Estimator(
-        model_fn=cnn_model_fn, model_dir='./model/'
+        model_fn=cnn_model_fn, model_dir='./model/', config=config
     )
     #tf.estimator.EstimatorSpec()
     tensors_to_log = {"probabilities":"softmax_tensor"}
