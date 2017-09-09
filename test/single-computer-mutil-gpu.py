@@ -105,6 +105,9 @@ def single_gpu():
         print('Cost time: ' + str(elapsed_time) + ' sec.')
     print('training done.')
 
+def averge_losses(loss):
+    tf.add_to_collection()
+
 if __name__ == '__main__':
     #print(get_weight__variable('heh', [2,2]))
     single_gpu()
