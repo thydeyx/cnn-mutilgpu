@@ -72,8 +72,10 @@ def average_losses(loss):
 def average_gradients(tower_grads):
     average_grads = []
     for grad_and_vars in zip(*tower_grads):
+        # 每一个grad_ans_vars保存每个GPU算出来的某个变量对应的梯度
         # Note that each grad_and_vars looks like the following:
         #   ((grad0_gpu0, var0_gpu0), ... , (grad0_gpuN, var0_gpuN))
+        # 每个GPU计算得到的变量vari和梯度集合
         grads = [g for g, _ in grad_and_vars]
         # Average over the 'tower' dimension.
         grad = tf.stack(grads, 0)
@@ -190,26 +192,35 @@ def single_gpu():
 
 def multi_gpu(num_gpu):
     batch_size = 128 * num_gpu
+    # mnist.train.images mnist.train.labels 包含训练、测试、验证数据
     mnist = input_data.read_data_sets('/tmp/data/mnist',one_hot=True)
 
+    # 清除默认图的堆栈，并设置全局图为默认图
     tf.reset_default_graph()
-    with tf.Session() as sess:
-        with tf.device('/cpu:0'):
-            learning_rate = tf.placeholder(tf.float32, shape=[])
-            opt = tf.train.AdamOptimizer(learning_rate=learning_rate)
+    # allow_soft_placement=True设置如果指定的设备不存在则在默认设备上运行，
+    config = tf.ConfigProto(log_device_placement=True, allow_soft_placement=True)
+    # 设置GPU可以按需增长
+    config.gpu_options.allow_growth = True
+    # 设置sess
+    with tf.Session(config=config) as sess:
+        with tf.device('/cpu:0'): # 以下内容在cpu0上运行
+            learning_rate = tf.placeholder(tf.float32, shape=[]) # 占位符，等待填入内容
+            opt = tf.train.AdamOptimizer(learning_rate=learning_rate) # 优化器opt
 
             print('build model...')
             print('build model on gpu tower...')
             models = []
             for gpu_id in range(num_gpu):
-                with tf.device('/gpu:%d' % gpu_id):
+                with tf.device('/gpu:%d' % gpu_id): # 在GPUi上运行
                     print('tower:%d...'% gpu_id)
+                    #tf.get_variable_scope() 返回的只是 variable_scope,不管 name_scope.所以以后我们在使用tf.get_variable_scope().reuse_variables() 时可以无视name_scope
                     with tf.name_scope('tower_%d' % gpu_id):
                         with tf.variable_scope('cpu_variables', reuse=gpu_id>0):
                             x = tf.placeholder(tf.float32, [None, 784])
                             y = tf.placeholder(tf.float32, [None, 10])
                             pred = build_model(x)
                             loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y))
+                            # 计算得到每一个（grad, var）对，grad为对应var的梯度
                             grads = opt.compute_gradients(loss)
                             models.append((x,y,pred,loss,grads))
             print('build model on gpu tower done.')
@@ -217,6 +228,9 @@ def multi_gpu(num_gpu):
             print('reduce model on cpu...')
             tower_x, tower_y, tower_preds, tower_losses, tower_grads = zip(*models)
             aver_loss_op = tf.reduce_mean(tower_losses)
+            # apply_gradients讲(grad, var)对应用到优化器上
+            # 优化器分两个部分 compute_gradients计算梯度（grad， var） 通过apply_gradients将结果应用到优化器上
+            # 使用多GPU计算得到的梯度均值更新参数
             apply_gradient_op = opt.apply_gradients(average_gradients(tower_grads))
 
             all_y = tf.reshape(tf.stack(tower_y, 0), [-1,10])
@@ -226,10 +240,12 @@ def multi_gpu(num_gpu):
             print('reduce model on cpu done.')
 
             print('run train op...')
+            # 初始化
             sess.run(tf.global_variables_initializer())
             lr = 0.01
             for epoch in range(2):
                 start_time = time.time()
+                # 每个GPU的数据量
                 payload_per_gpu = batch_size/num_gpu
                 total_batch = int(mnist.train.num_examples/batch_size)
                 avg_loss = 0.0
