@@ -246,7 +246,7 @@ def multi_gpu(num_gpu):
             for epoch in range(2):
                 start_time = time.time()
                 # 每个GPU的数据量
-                payload_per_gpu = batch_size/num_gpu
+                payload_per_gpu = int(batch_size/num_gpu)
                 total_batch = int(mnist.train.num_examples/batch_size)
                 avg_loss = 0.0
                 print('\n---------------------')
@@ -263,7 +263,7 @@ def multi_gpu(num_gpu):
 
                 lr = max(lr * 0.7,0.00001)
 
-                val_payload_per_gpu = batch_size / num_gpu
+                val_payload_per_gpu = int(batch_size / num_gpu)
                 total_batch = int(mnist.validation.num_examples / batch_size)
                 preds = None
                 ys = None
