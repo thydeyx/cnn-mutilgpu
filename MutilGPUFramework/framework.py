@@ -3,7 +3,7 @@
 #        Author : TangHanYi
 #        E-mail : thydeyx@163.com
 #   Create Date : 2017-09-10 00:47:48
-# Last modified : 2017-09-10 00:47:51
+# Last modified : 2017-09-12 16时43分52秒
 #     File Name : framework.py
 #          Desc :
 
@@ -140,7 +140,7 @@ class MutilGPUFrameWork(object):
                     avg_loss /= total_batch
                     print('Train loss:%.4f' % (avg_loss))
 
-                    lr = max(lr * 0.7, 0.00001)
+                    #lr = max(lr * 0.7, 0.00001)
 
                     val_payload_per_gpu = int(self.batch_size / self.num_gpu)
                     total_batch = int(self.test_label_num / self.batch_size)

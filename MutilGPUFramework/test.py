@@ -3,10 +3,12 @@
 #        Author : TangHanYi
 #        E-mail : thydeyx@163.com
 #   Create Date : 2017-09-10 01:04:07
-# Last modified : 2017-09-10 01:04:11
+# Last modified : 2017-09-12 16时42分21秒
 #     File Name : test.py
 #          Desc :
 
+import sys
+sys.path.append('../')
 from MutilGPUFramework.framework import MutilGPUFrameWork
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
@@ -80,7 +82,7 @@ class Solution(MutilGPUFrameWork):
         self.session_config = config
         self.lr = 1e-2
         self.opt = 'Adam'
-        self.epochs = 20
+        self.epochs = 2000
 
     def train(self):
         self.config_para()
