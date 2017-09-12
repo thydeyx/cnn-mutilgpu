@@ -287,7 +287,7 @@ def multi_gpu(num_gpu):
                 print('Cost time: ' + str(elapsed_time) + ' sec.')
             print('training done.')
 
-            test_payload_per_gpu = batch_size / num_gpu
+            test_payload_per_gpu = int(batch_size / num_gpu)
             total_batch = int(mnist.test.num_examples / batch_size)
             preds = None
             ys = None
