@@ -85,7 +85,7 @@ class MutilGPUFrameWork(object):
                 learning_rate = tf.placeholder(tf.float32, shape=[])
                 opt = None
                 if self.opt == 'Adam':
-                    opt = tf.train.AdadeltaOptimizer(learning_rate=learning_rate)
+                    opt = tf.train.AdamOptimizer(learning_rate=learning_rate)
                 elif self.opt == 'SGD':
                     opt = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
 
